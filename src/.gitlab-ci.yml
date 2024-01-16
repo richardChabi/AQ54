@@ -1,0 +1,28 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DOCKER_IMAGE_NAME: registry.gitlab.com/votre_nom_utilisateur/votre_projet
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build:
+  stage: build
+  script:
+    - docker build -t $DOCKER_IMAGE_NAME .
+    - docker push $DOCKER_IMAGE_NAME
+
+test:
+  stage: test
+  script:
+    - docker run $DOCKER_IMAGE_NAME npm run test
+
+deploy:
+  stage: deploy
+  only:
+    - master  # Déployez uniquement depuis la branche master
+  script:
+    - docker run -d -p 80:3000 $DOCKER_IMAGE_NAME
